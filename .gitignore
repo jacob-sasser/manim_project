@@ -1,0 +1,6 @@
+*.mp4
+*.toml
+*.lock
+*.pyc
+*.txt
+manimations/.python-version
