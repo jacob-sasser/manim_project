@@ -4,3 +4,4 @@
 *.pyc
 *.txt
 manimations/.python-version
+venv/
