@@ -1,4 +1,5 @@
 from manim import *
+from jsons.handlejson import importjson
 class DefaultTemplate(Scene):
     def construct(self):
         circle = Circle()  # create a circle
@@ -11,3 +12,6 @@ class DefaultTemplate(Scene):
         self.play(Create(square))  # animate the creation of the square
         self.play(Transform(square, circle))  # interpolate the square into the circle
         self.play(FadeOut(square))  # fade out animation
+
+def main():
+    pass #TODO 

@@ -1,7 +1,7 @@
 import pyglet
 from pyglet import shapes
 import os
-
+#NOT REALLY WORKING ATM, WILL FIX ON 02/19
 user_path=pyglet.resource.get_data_path('InteractiveManim/configs')
 if not os.path.exists(user_path): os.makedirs(user_path)
 print(user_path)
