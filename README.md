@@ -9,4 +9,8 @@ Jacob
     Create benchmarks (will do on/before feb 19)
 Brandon
     create template manim files to accept inputs from a json file
+        -GraphTemplate:
+            Define fixed distance between each node in the graph.
+            Adjust graph position to center.
+            Adjust camera position to mimic the graph being moved to center.
     export to scenes to SVG
