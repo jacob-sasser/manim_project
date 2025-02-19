@@ -1,5 +1,6 @@
 from manim import *
 import random
+import time
 import networkx as nx
 #from jsons.handlejson import importjson
 
@@ -24,6 +25,7 @@ class Graphtemp1(Scene):
 
 class GraphTemp2(MovingCameraScene):
     def construct(self):
+        start = time.time()
         #Variable n defines number of nodes.
         n = 5
         nodes = [i for i in range(n)]
@@ -51,14 +53,23 @@ class GraphTemp2(MovingCameraScene):
             label_fill_color= 'BLUE'
         )
         
-        self.play(Create(G))
-        self.wait(2)
         random_node = random.randint(0, n-1)
-        #save the original state of the camera (zoomed out)
-        self.camera.frame.save_state()
-        self.play(self.camera.frame.animate.set(width = 2).move_to(pos[random_node]))
+        highlight = Circle(radius = 0.25).move_to(pos[random_node]) #Red circle used to highlight nodes. 0.25 is the radius of each node(layout_scale).
+        self.add(G)
+        self.camera.frame.save_state() #Saves the original position (state) of camera.
+        self.play(
+            self.camera.frame.animate.set(width = 2).move_to(pos[random_node]), 
+            FadeIn(highlight)                        
+            )
+        self.wait(2)
+        self.play(
+            FadeOut(highlight),
+            Restore(self.camera.frame)
+            )
         self.wait(2)
         
+        end = time.time()
+        print(f"Time taken: {(end-start)*10**3:.03f}ms")        
         
         
         
