@@ -27,7 +27,7 @@ class GraphTemp2(MovingCameraScene):
     def construct(self):
         start = time.time()
         #Variable n defines number of nodes.
-        n = 5
+        n = 100
         nodes = [i for i in range(n)]
         edges = []
         #Populating edges array.
