@@ -13,4 +13,5 @@ Brandon
             Define fixed distance between each node in the graph.
             Adjust graph position to center.
             Adjust camera position to mimic the graph being moved to center.
+            Build alternative version using networkX
     export to scenes to SVG
