@@ -93,7 +93,7 @@ class GraphTemp2(MovingCameraScene):
         print(f"Time taken: {(end-start)*10**3:.03f}ms")        
 
         
-class variousSizedGraphs(Scene):
+class variousSizedGraphs1(Scene):
     def construct(self):
         start = time.time()
         #25 Nodes
@@ -162,6 +162,45 @@ class variousSizedGraphs(Scene):
         
         end = time.time()
         print(f"200 nodes time taken: {(end-start)*10**3:.03f}ms")  
+
+class variousSizedGraphs2(Scene):
+    #Previous variousSizedGraphs scene class but using a while loop.
+    def construct(self):
+        i = 25
+        while i <= 200:
+            start = time.time()
+            graph_data = graphPopulation(i)
+            g = Graph(
+                graph_data[0],
+                graph_data[1],
+                layout = graph_data[2],
+                layout_scale = 2
+            )
+            random_node = random.randint(0, i-1)
+            anim_group = [FadeIn(g),g.vertices[random_node].animate.set_color(RED),Wait(1.5),FadeOut(g)]
+            self.play(Succession(*anim_group))
+            self.remove(g,g.vertices[random_node])
+            
+            end = time.time()
+            print(f"{i} nodes time taken: {(end-start)*10**3:.03f}ms")  
+            i = i * 2
+            
+            
+        
+    
+class scalingTests(Scene):
+    def construct(self):
+        graph_data = graphPopulation(10)
+        g_10 = Graph(
+            graph_data[0],
+            graph_data[1],
+            layout = graph_data[2], 
+            layout_scale = 2.0 
+        )
+        self.add(g_10)
+        self.play(
+            ScaleInPlace(g_10, 2.0)
+        )
         
         
         
