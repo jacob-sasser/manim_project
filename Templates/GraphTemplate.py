@@ -20,12 +20,15 @@ def graphPopulation(n):
             edges.append(c2)
         #Randomizing the position of nodes.
         pos = {i: (random.randint(-2,2), random.randint(-2,2), 0) for i in range(n)}
+        #Creating Labels
+        labels = {node: Text(str(node)) for node in nodes}
         #Populating array with all configured graph data to be returned.
-        graph_data = [nodes, edges, pos]
+        graph_data = [nodes, edges, pos, labels]
         return graph_data
         
 
 class Graphtemp1(Scene):
+    
     def construct(self):
         n=0
         self.camera.background_color=BLACK
@@ -174,7 +177,8 @@ class variousSizedGraphs2(Scene):
                 graph_data[0],
                 graph_data[1],
                 layout = graph_data[2],
-                layout_scale = 2
+                layout_scale = 2,
+                labels = True
             )
             random_node = random.randint(0, i-1)
             anim_group = [FadeIn(g),g.vertices[random_node].animate.set_color(RED),Wait(1.5),FadeOut(g)]
@@ -185,8 +189,6 @@ class variousSizedGraphs2(Scene):
             print(f"{i} nodes time taken: {(end-start)*10**3:.03f}ms")  
             i = i * 2
             
-            
-        
     
 class scalingTests(Scene):
     def construct(self):
