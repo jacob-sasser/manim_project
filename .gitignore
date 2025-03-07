@@ -7,3 +7,5 @@ manimations/.python-version
 venv/
 *.json
 media/
+*.ipynb
+.ipynb_checkpoints/InteractivityTest-checkpoint.py
