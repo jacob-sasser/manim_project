@@ -46,7 +46,6 @@ class Graphtemp1(Scene):
         if n in nodes:
             self.play(self.camera.set_x(nodes[n].get_x()).set_y(nodes[n].get_y()))
             
-
 class GraphTemp2(MovingCameraScene):
     def construct(self):
         start = time.time()
@@ -94,7 +93,6 @@ class GraphTemp2(MovingCameraScene):
         
         end = time.time()
         print(f"Time taken: {(end-start)*10**3:.03f}ms")        
-
         
 class variousSizedGraphs1(Scene):
     def construct(self):
@@ -189,7 +187,7 @@ class variousSizedGraphs2(Scene):
             print(f"{i} nodes time taken: {(end-start)*10**3:.03f}ms")  
             i = i * 2
             
-    
+
 class scalingTests(Scene):
     def construct(self):
         graph_data = graphPopulation(10)
@@ -203,6 +201,44 @@ class scalingTests(Scene):
         self.play(
             ScaleInPlace(g_10, 2.0)
         )
+
+
+
+class BFSAnim(Scene):
+    def construct(self):
+        tree_depth = 2
+        children = 2
+        nx_graph = nx.balanced_tree(children, tree_depth)
+        m_graph = Graph(list(nx_graph.nodes),
+                        list(nx_graph.edges),
+                        layout = "tree",
+                        layout_scale= 4,
+                        edge_config = {"buff": 0.4},
+                        vertex_config = {"color": RED, "stroke_width": 3, "radius": 0.3},
+                        root_vertex = 0
+                        )
+
+        edge_order = list(nx.bfs_edges(nx_graph, 0, sort_neighbors=lambda n: sorted(n, reverse=True)))
+        explored = []
+        anim_group = []
+        for edge in edge_order:
+            node1 = m_graph.vertices[edge[0]]
+            node2 = m_graph.vertices[edge[1]]
+            if node1 not in explored:
+                anim_group.append(Circumscribe(node1, shape=Circle, color=GREEN))
+                anim_group.append(FadeToColor(node1, color=GREEN))
+                explored.append(node1)
+                
+            anim_group.append(FadeToColor(m_graph.edges[(edge[0],edge[1])], GREEN))
+            
+            if node2 not in explored:
+                anim_group.append(Circumscribe(node2, shape=Circle, color=GREEN))
+                anim_group.append(FadeToColor(node2, color=GREEN))
+                explored.append(node2)
+                
+        self.add(m_graph)
+        self.add(Text("BFS Search Algorithm").next_to(m_graph, UP))        
+        self.play(Succession(*anim_group, lag_ratio = 0.5))
         
         
         
