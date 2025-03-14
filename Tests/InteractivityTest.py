@@ -2,20 +2,17 @@ from manim import *
 import networkx as nx
 from manim.opengl import *
 import pyglet
-import time
 import random
 from pyglet.window import mouse
-
+import numpy as np
 
 class GraphTemp2(MovingCameraScene):
     locations={}
-    def get_key(self, x, y, z):
-        for key, value in self.pos.items():
-            if value == (x, y, z):
-                return key
-        return None
+    last_node=None
+    
+
     def construct(self):
-        start = time.time()
+        self.zoom_scale=0.75
         #Variable n defines number of nodes.
         n = 9
         nodes = [i for i in range(n)]
@@ -46,10 +43,10 @@ class GraphTemp2(MovingCameraScene):
         self.highlight = Circle(radius=0.25).move_to(self.pos[1])
         self.original_width = self.camera.scale
         self.add(self.G)
-        end = time.time()
-        
-        print(f"Time taken: {(end-start)*10**3:.03f}ms")  
-        print(self.pos)     
+       
+        self.highlight=None
+        self.original_scale=self.camera.scale
+
         self.interactive_embed()
     def on_key_press(self,symbol,modifiers):
             if symbol == pyglet.window.key._1:
@@ -59,27 +56,52 @@ class GraphTemp2(MovingCameraScene):
                     FadeOut(self.highlight),
                     FadeIn(Circle(radius=0.25).move_to(self.pos[1]))  
                 )
+            if symbol==pyglet.window.key.MINUS:
+                 self.camera.scale((1/self.zoom_scale)).move_to(ORIGIN)
+
             super().on_key_press(symbol, modifiers)
 
+
     def on_mouse_press(self, point, button, modifiers):
-            reset=True
             x,y,z=point
-            rounded_x = round(x, 0)
-            rounded_y = round(y, 0)
-            if rounded_x==-0.0:
-                 rounded_x=0.
-            if rounded_y == -0.0:
-                 rounded_y=0.
+            scene_x=x
+            scene_y=y
+            print(x,y)
+            #if self.last_node is not None: 
+             #   scene_x,scene_y,_=self.calculate_relative_node_pos(self.last_node,self.zoom_scale)
+
+            rounded_x = round(scene_x, 0)
+            rounded_y = round(scene_y, 0)
+            if rounded_x==-0.0:rounded_x=0.
+            if rounded_y == -0.0:rounded_y=0.
             print(rounded_x,rounded_y)
             
             for node, pos in self.pos.items():
-                    
-                    if (round(pos[0], 1), round(pos[1], 1)) == (rounded_x, rounded_y):
-                        self.play(
-                        self.camera.animate.scale(0.5).move_to(self.pos[node]),
-                        FadeOut(self.highlight),
-                        FadeIn(Circle(radius=0.25).move_to(self.pos[node]))
-                        )
+                if (round(pos[0], 1), round(pos[1], 1)) == (rounded_x, rounded_y):
+                    self.focus_node(node)
 
             super().on_mouse_press(point, button, modifiers)
 
+    def focus_node(self,node):
+        '''if self.last_node is not None and self.last_node!=node:
+            self.play(self.camera.animate.scale(1/self.zoom_scale).move_to(ORIGIN))'''
+        if self.highlight:
+            self.play(FadeOut(self.highlight))
+        self.highlight = Circle(radius=0.25).move_to(self.pos[node])
+        
+        self.play(
+                #self.camera.animate.scale(1).move_to(self.pos[node]),
+                FadeIn(self.highlight))
+        self.last_node = node
+    
+
+    def calculate_relative_node_pos(self,nodes,scale):
+        camera_center=np.array(self.camera.get_center())
+        relative_nodes_pos={}
+        for node in self.pos:
+            node_pos=np.array(self.pos[node])
+            relative_pos=(node_pos-camera_center)/scale
+            relative_nodes_pos[node]=relative_pos
+
+        
+        return relative_pos
