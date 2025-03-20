@@ -1,17 +1,8 @@
 # manim_project
 Basic info: 
     
-TODO List: 
-Jacob
-    Create working mouse/keyboard interactions (Not done)
-    Export inputs to config file(done)
-    Implement video,sound player(not relevant ATM, will do at later date.)
-    Create benchmarks (will do on/before feb 19)
-Brandon
-    create template manim files to accept inputs from a json file
-        -GraphTemplate:
-            Define fixed distance between each node in the graph.
-            Adjust graph position to center.
-            Adjust camera position to mimic the graph being moved to center.
-            Build alternative version using networkX
-    export to scenes to SVG
+To run: 
+Need to have UV installed, https://docs.manim.community/en/stable/installation.html
+other packages needed: pyglet, IPython, numpy, networkx
+To run the project do: uv run manim Tests/InteractivityTest.py -p --renderer=opengl
+to highlight a node, simply click on it. MINUS key will zoom out and move the camera to (0,0,0)
