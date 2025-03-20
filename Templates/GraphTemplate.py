@@ -187,7 +187,6 @@ class variousSizedGraphs2(Scene):
             print(f"{i} nodes time taken: {(end-start)*10**3:.03f}ms")  
             i = i * 2
             
-
 class scalingTests(Scene):
     def construct(self):
         graph_data = graphPopulation(10)
@@ -201,8 +200,6 @@ class scalingTests(Scene):
         self.play(
             ScaleInPlace(g_10, 2.0)
         )
-
-
 
 class BFSAnim(Scene):
     def construct(self):
@@ -239,6 +236,89 @@ class BFSAnim(Scene):
         self.add(m_graph)
         self.add(Text("BFS Search Algorithm").next_to(m_graph, UP))        
         self.play(Succession(*anim_group, lag_ratio = 0.5))
+        
+vCount = 8 #Vertice count.
+
+def randomEdgeGen(edgesArr: list):
+    for i in range(vCount):
+        while(True): #Loop is used to ensure no duplicate edges.
+            randEdge = random.randrange(vCount)
+            if((randEdge, i) in edgesArr or i == randEdge):
+                continue
+            else:
+                break
+        edgesArr.append((i, randEdge)) #Add edge tuple to array of edges.
+            
+
+
+class SPFAlgorithm(Scene):
+    def construct(self):
+        #Scene graph parameters.
+        pos = {
+            0:(0,4,0),
+            1:(-2,2,0),
+            2:(2,2,0),
+            3:(-2,-2,0),
+            4:(2,-2,0),
+            5:(0,-4,0),
+            6:(-4,0,0),
+            7:(4,0,0)
+        }
+        verticesArr = [i for i in range(vCount)]
+        edgesArr = []
+        randomEdgeGen(edgesArr)
+        
+        #Scene graph creation
+        sceneNXGraph = nx.DiGraph() #Ensures edge tuple (u, v) doesn't get flipped to (v, u).
+        sceneNXGraph.add_nodes_from(verticesArr)
+        sceneNXGraph.add_edges_from(edgesArr)
+        sceneGraph = Graph.from_networkx(sceneNXGraph, layout = pos, labels = True, layout_scale=4.0, edge_type=DashedLine)
+        
+        #Weight population
+        weights = [random.randrange(1,10) for edge in edgesArr]
+        weightedEdgesArr = [(*edge, weights[i]) for i, edge in enumerate(edgesArr)]
+        
+        #Weight label mobject creation & positioning.
+        edgeLabels = VGroup()
+        for wEdge in weightedEdgesArr:
+            edge = (wEdge[0],wEdge[1])
+            weight = wEdge[2]
+            edgeLine = sceneGraph.edges[edge]
+            label = Text(str(weight)).scale(0.75)
+            center = edgeLine.get_center()
+            label.move_to(center)
+            edgeLabels.add(label)
+        
+        #Calculate minnimum spanning tree of the graph using Prim's algorithm.
+        mstGraph = nx.Graph() #Duplicate graph of sceneNXGraph. Used to calculate minnimum spanning tree.
+        mstGraph.add_nodes_from(verticesArr)
+        mstGraph.add_weighted_edges_from(weightedEdgesArr)
+        mst = tree.minimum_spanning_edges(mstGraph, data = True, algorithm="prim")
+        mstEdges = list(mst)
+        
+        #Animation.
+        self.add(sceneGraph, edgeLabels)
+        self.play(sceneGraph.vertices[mstEdges[0][0]].animate.set_color(RED)) #Highlights first node.
+        for edge in mstEdges:
+            #Matching edge values to a tuple in the original edges array (value order inconsistent between sceneGraph & mstGraph)
+            if(edge[0], edge[1]) in edgesArr: 
+                temp = (edge[0], edge[1])
+            else:
+                temp = (edge[1], edge[0])
+            self.play(sceneGraph.edges[temp].animate.set_color(RED)) #Highlight the chosen edge.
+            if sceneGraph.vertices[temp[0]].get_color() != RED: #Check if the first node is highlighted.
+                self.play(sceneGraph.vertices[temp[0]].animate.set_color(RED))
+            if sceneGraph.vertices[temp[1]].get_color() != RED: #Check if the second node is highlighted
+                self.play(sceneGraph.vertices[temp[1]].animate.set_color(RED))
+            
+        
+        
+            
+            
+        
+            
+        
+        
         
         
         
