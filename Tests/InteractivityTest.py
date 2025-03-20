@@ -14,6 +14,8 @@ class GraphTemp2(MovingCameraScene):
     incorrect_max = 3
     question_text = None
     feedback_text = None  
+    assignments=[]
+    current_assignment_index=0
     def construct(self):
         self.zoom_scale=0.75
         #Variable n defines number of nodes.
@@ -44,14 +46,19 @@ class GraphTemp2(MovingCameraScene):
             label_fill_color= 'BLUE'
         )
         self.highlight_circle = Circle(radius=0.25)
-        self.add(self.highlight_circle)
+        #self.add(self.highlight_circle)
         self.original_width = self.camera.scale
         self.add(self.G)
         self.remove_highlight=None
         self.original_scale=self.camera.scale
-        
+
         self.is_assignment=True
-        self.assignment(correct_node=1, question="Select the first node.")
+        self.assignments = [
+            (1, "Select the first node."),
+            (3, "Select the third node."),
+            (5, "Select the fifth node."),
+            (7, "Select the seventh node.")]
+        self.start_next_assignment()
 
 
         self.interactive_embed()
@@ -89,7 +96,8 @@ class GraphTemp2(MovingCameraScene):
             for node, pos in self.pos.items():
                 if (round(pos[0], 0), round(pos[1], 0)) == (rounded_x, rounded_y):
                     
-                    self.focus_node(node)
+                    #self.focus_node(node)
+                    
                     self.check_answer(node)
                     
             super().on_mouse_press(point, button, modifiers)
@@ -113,6 +121,10 @@ class GraphTemp2(MovingCameraScene):
             self.feedback_text=Text("Correct").to_edge(DOWN)
             self.add(self.feedback_text)
             self.is_assignment=False
+
+            self.play(FadeOut(self.feedback_text), FadeOut(self.question_text), run_time=0.5 )      
+            self.current_assignment_index+=1
+            self.start_next_assignment()
         else:
             self.incorrect_counter+=1
             if self.incorrect_counter>=self.incorrect_max:
@@ -123,6 +135,12 @@ class GraphTemp2(MovingCameraScene):
             self.add(self.feedback_text)
 
 
+    def start_next_assignment(self):
+        if(self.current_assignment_index<len(self.assignments)):
+            correct_node,question=self.assignments[self.current_assignment_index]
+            self.assignment(correct_node,question)
+        else:
+            self.complete_all_assignments()
 
     def assignment(self, correct_node, question):
         self.correct_node = correct_node
@@ -131,9 +149,15 @@ class GraphTemp2(MovingCameraScene):
 
         if self.question_text:
             self.remove(self.question_text)
+        if self.feedback_text:
+            self.remove(self.feedback_text)
         self.question_text = Text(question).to_edge(UP)
         self.add(self.question_text)
-           
+        
+    def complete_all_assignments(self):
+        self.clear()
+        completion_text=Text("All assignments completed")
+        self.add(completion_text)
 
     def calculate_relative_node_pos(self,nodes,scale):
         camera_center=np.array(self.camera.get_center())
