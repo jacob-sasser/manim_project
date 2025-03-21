@@ -4,7 +4,7 @@ import time
 import networkx as nx
 from networkx.algorithms import tree
 #from jsons.handlejson import importjson
-
+import IPython
 
 def graphPopulation(n):
         nodes = [i for i in range(n)]
@@ -244,7 +244,8 @@ class BFSAnim(Scene):
                 self.play(Circumscribe(node2, shape=Circle, color=GREEN))
                 self.play(FadeToColor(node2, color=GREEN))
                 explored.append(node2)
-                        
+
+            self.interactive_embed()                       
             
 class SPFAlgorithm(Scene):
     def construct(self):
