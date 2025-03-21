@@ -222,7 +222,7 @@ class BFSAnim(Scene):
                         list(nx_graph.edges),
                         layout = "tree",
                         layout_scale= 4.0,
-                        edge_config = {"buff": 0.5}, #This doesn't work.
+                        edge_config = {"buff": 0.5}, #This doesn't work w/ opengl
                         vertex_config = {"color": RED, "stroke_width": 3, "radius": 0.3},
                         root_vertex = 0,
                         )
