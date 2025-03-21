@@ -2,6 +2,7 @@ from manim import *
 import random
 import time
 import networkx as nx
+from networkx.algorithms import tree
 #from jsons.handlejson import importjson
 
 
@@ -25,7 +26,18 @@ def graphPopulation(n):
         #Populating array with all configured graph data to be returned.
         graph_data = [nodes, edges, pos, labels]
         return graph_data
-        
+
+def randomEdgeGen(vCount: int, edgesArr: list):
+    #Used in SPFAlgorithm
+    for i in range(vCount):
+        while(True): #Loop is used to ensure no duplicate edges.
+            randEdge = random.randrange(vCount)
+            if((randEdge, i) in edgesArr or i == randEdge):
+                continue
+            else:
+                break
+        edgesArr.append((i, randEdge)) #Add edge tuple to array of edges.        
+
 
 class Graphtemp1(Scene):
     
@@ -209,51 +221,35 @@ class BFSAnim(Scene):
         m_graph = Graph(list(nx_graph.nodes),
                         list(nx_graph.edges),
                         layout = "tree",
-                        layout_scale= 4,
-                        edge_config = {"buff": 0.4},
+                        layout_scale= 4.0,
+                        edge_config = {"buff": 0.5}, #This doesn't work.
                         vertex_config = {"color": RED, "stroke_width": 3, "radius": 0.3},
-                        root_vertex = 0
+                        root_vertex = 0,
                         )
+        self.add(m_graph,Text("BFS Search Algorithm").next_to(m_graph, UP))
 
         edge_order = list(nx.bfs_edges(nx_graph, 0, sort_neighbors=lambda n: sorted(n, reverse=True)))
         explored = []
-        anim_group = []
         for edge in edge_order:
             node1 = m_graph.vertices[edge[0]]
             node2 = m_graph.vertices[edge[1]]
             if node1 not in explored:
-                anim_group.append(Circumscribe(node1, shape=Circle, color=GREEN))
-                anim_group.append(FadeToColor(node1, color=GREEN))
+                self.play(Circumscribe(node1, shape=Circle, color=GREEN))
+                self.play(FadeToColor(node1, color=GREEN))
                 explored.append(node1)
                 
-            anim_group.append(FadeToColor(m_graph.edges[(edge[0],edge[1])], GREEN))
+            self.play(FadeToColor(m_graph.edges[(edge[0],edge[1])], GREEN))
             
             if node2 not in explored:
-                anim_group.append(Circumscribe(node2, shape=Circle, color=GREEN))
-                anim_group.append(FadeToColor(node2, color=GREEN))
+                self.play(Circumscribe(node2, shape=Circle, color=GREEN))
+                self.play(FadeToColor(node2, color=GREEN))
                 explored.append(node2)
-                
-        self.add(m_graph)
-        self.add(Text("BFS Search Algorithm").next_to(m_graph, UP))        
-        self.play(Succession(*anim_group, lag_ratio = 0.5))
-        
-vCount = 8 #Vertice count.
-
-def randomEdgeGen(edgesArr: list):
-    for i in range(vCount):
-        while(True): #Loop is used to ensure no duplicate edges.
-            randEdge = random.randrange(vCount)
-            if((randEdge, i) in edgesArr or i == randEdge):
-                continue
-            else:
-                break
-        edgesArr.append((i, randEdge)) #Add edge tuple to array of edges.
+                        
             
-
-
 class SPFAlgorithm(Scene):
     def construct(self):
         #Scene graph parameters.
+        vCount = 8
         pos = {
             0:(0,4,0),
             1:(-2,2,0),
@@ -266,13 +262,18 @@ class SPFAlgorithm(Scene):
         }
         verticesArr = [i for i in range(vCount)]
         edgesArr = []
-        randomEdgeGen(edgesArr)
+        randomEdgeGen(vCount, edgesArr)
         
         #Scene graph creation
         sceneNXGraph = nx.DiGraph() #Ensures edge tuple (u, v) doesn't get flipped to (v, u).
         sceneNXGraph.add_nodes_from(verticesArr)
         sceneNXGraph.add_edges_from(edgesArr)
-        sceneGraph = Graph.from_networkx(sceneNXGraph, layout = pos, labels = True, layout_scale=4.0, edge_type=DashedLine)
+        sceneGraph = Graph.from_networkx(sceneNXGraph, 
+                                         layout = pos, 
+                                         labels = True, 
+                                         label_fill_color = BLUE,
+                                         layout_scale = 4.0, 
+                                         edge_type = DashedLine)
         
         #Weight population
         weights = [random.randrange(1,10) for edge in edgesArr]
