@@ -5,6 +5,7 @@
 *.txt
 manimations/.python-version
 venv/
+.venv/
 *.json
 media/
 *.ipynb
