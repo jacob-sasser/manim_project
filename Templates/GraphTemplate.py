@@ -5,6 +5,7 @@ import networkx as nx
 from networkx.algorithms import tree
 #from jsons.handlejson import importjson
 import IPython
+from Assignment import Assignment
 
 def graphPopulation(n):
         nodes = [i for i in range(n)]
@@ -213,12 +214,12 @@ class scalingTests(Scene):
             ScaleInPlace(g_10, 2.0)
         )
 
-class BFSAnim(Scene):
+class BFSAnim(Scene,Assignment):
     def construct(self):
         tree_depth = 2
         children = 2
         nx_graph = nx.balanced_tree(children, tree_depth)
-        m_graph = Graph(list(nx_graph.nodes),
+        self.m_graph = Graph(list(nx_graph.nodes),
                         list(nx_graph.edges),
                         layout = "tree",
                         layout_scale= 4.0,
@@ -226,26 +227,76 @@ class BFSAnim(Scene):
                         vertex_config = {"color": RED, "stroke_width": 3, "radius": 0.3},
                         root_vertex = 0,
                         )
-        self.add(m_graph,Text("BFS Search Algorithm").next_to(m_graph, UP))
+        
+        self.add(self.m_graph,Text("BFS Search Algorithm").next_to(self.m_graph, UP))
 
-        edge_order = list(nx.bfs_edges(nx_graph, 0, sort_neighbors=lambda n: sorted(n, reverse=True)))
+        self.edge_order = list(nx.bfs_edges(nx_graph, 0, sort_neighbors=lambda n: sorted(n, reverse=True)))
         explored = []
-        for edge in edge_order:
-            node1 = m_graph.vertices[edge[0]]
-            node2 = m_graph.vertices[edge[1]]
-            if node1 not in explored:
-                self.play(Circumscribe(node1, shape=Circle, color=GREEN))
-                self.play(FadeToColor(node1, color=GREEN))
-                explored.append(node1)
-                
-            self.play(FadeToColor(m_graph.edges[(edge[0],edge[1])], GREEN))
-            
-            if node2 not in explored:
-                self.play(Circumscribe(node2, shape=Circle, color=GREEN))
-                self.play(FadeToColor(node2, color=GREEN))
-                explored.append(node2)
+       
+        
+            # if node1 not in explored:
 
-            self.interactive_embed()                       
+            #     self.play(Circumscribe(node1, shape=Circle, color=GREEN))
+            #     self.play(FadeToColor(node1, color=GREEN))
+            #     explored.append(node1)
+                
+            # self.play(FadeToColor(self.m_graph.edges[(edge[0],edge[1])], GREEN))
+            
+            # if node2 not in explored:
+            #     self.play(Circumscribe(node2, shape=Circle, color=GREEN))
+            #     self.play(FadeToColor(node2, color=GREEN))
+            #     explored.append(node2)
+        
+            
+        Assignment.assignments=[(0,"Select which node is next"),
+                                    (1,"Select which node is next"),
+                                    (2,"Select which node is next")]
+            
+
+        Assignment.start_next_assignment(self) 
+        self.pos={}
+        self.pos[0]=self.m_graph.vertices[0].get_center().tolist()
+        for k,edge in enumerate(self.edge_order):
+            for i in edge:
+                self.pos[k+1] = self.m_graph.vertices[i].get_center().tolist()
+        
+        #self.pos = {i: self.m_graph.vertices[i].get_center().tolist() for i in self.edge_order[1]}
+        self.node_radius=0.5
+        self.interactive_embed() 
+       
+    def highlight_node(self,edge):
+        correct_node = self.m_graph.vertices[edge[1]]
+        edge = self.m_graph.edges[(edge[0], edge[1])]
+        anims = AnimationGroup(FadeToColor(edge, GREEN), correct_node.animate.set_color(GREEN))
+        self.play(Succession(*anims))
+    #change Assignment.check_answer here
+    def on_mouse_press(self, point, button, modifiers):
+            
+            x,y,z=point
+            scene_x=x
+            scene_y=y
+            
+            print(x,y)
+            #if self.last_node is not None: 
+             #   scene_x,scene_y,_=self.calculate_relative_node_pos(self.last_node,self.zoom_scale)
+            
+            rounded_x = round(scene_x, 1)
+            rounded_y = round(scene_y, 1)
+            if rounded_x==-0.0:rounded_x=0.
+            if rounded_y == -0.0:rounded_y=0.
+            print(rounded_x,rounded_y)
+            
+            for node, pos in self.pos.items():
+                node_x, node_y, _ = pos
+                if (abs(scene_x - node_x) <= self.node_radius) and (abs(scene_y - node_y) <= self.node_radius):
+                    print(abs(scene_x-node_x))
+                    print(abs(scene_y-node_y))
+                    #self.focus_node(node)
+                    
+                    Assignment.check_answer(self,node,0)
+            
+            super().on_mouse_press(point, button, modifiers)
+                      
             
 class SPFAlgorithm(Scene):
     def construct(self):
