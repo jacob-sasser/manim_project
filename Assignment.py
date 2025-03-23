@@ -49,7 +49,7 @@ class Assignment():
         if self.feedback_text:
             self.remove(self.feedback_text)
         self.question_text = Text(question).to_edge(UP)
-        self.add(self.question_text)
+        self.add(self.question_text.scale(0.5))
         
     def complete_all_assignments(self):
         self.clear()
