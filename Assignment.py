@@ -49,12 +49,17 @@ class Assignment():
         if self.feedback_text:
             self.remove(self.feedback_text)
         self.question_text = Text(question).to_edge(UP)
-        self.add(self.question_text.scale(0.5))
+        self.add(self.question_text.scale(0.4))
         
     def complete_all_assignments(self):
         self.clear()
-        completion_text=Text("All assignments completed")
+        completion_text=Text("All assignments completed").scale(0.5)
         self.add(completion_text)
+    
+    def failed_assignment(self):
+        self.clear()
+        fail_text = Text("Too many incorrect attempts.").scale(0.5)
+        self.add(fail_text)
 
     def calculate_relative_node_pos(self,nodes,scale):
         camera_center=np.array(self.camera.get_center())
