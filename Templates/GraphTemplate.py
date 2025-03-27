@@ -312,7 +312,7 @@ class BFSAnim(Scene,Assignment):
                     #self.focus_node(node)
                     
                     self.check_answer(node)
-            
+                    
             super().on_mouse_press(point, button, modifiers)
                       
             
