@@ -10,3 +10,4 @@ venv/
 media/
 *.ipynb
 .ipynb_checkpoints/InteractivityTest-checkpoint.py
+/manimations

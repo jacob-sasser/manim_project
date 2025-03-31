@@ -6,7 +6,7 @@ from typing import override
 from networkx.algorithms import tree
 #from jsons.handlejson import importjson
 import IPython
-
+import time
 from Assignment import Assignment
 
 def graphPopulation(n):
@@ -218,6 +218,7 @@ class scalingTests(Scene):
 
 class BFSAnim(Scene,Assignment):
     def construct(self):
+        self.layer_index=0
         self.next_edge = -1
         tree_depth = 2
         children = 2
@@ -283,7 +284,18 @@ class BFSAnim(Scene,Assignment):
         if self.feedback_text:
             self.remove(self.feedback_text)
         if type(self.correct_node)==list:
-            correct_answer()
+            self.layer_index+=1
+            self.feedback_text=Text("Correct").to_edge(DOWN)
+            self.add(self.feedback_text)
+            
+            self.highlight_node()
+            self.next_edge += 1
+            
+            self.is_assignment=False
+            self.play(FadeOut(self.feedback_text), FadeOut(self.question_text), run_time=0.5 )      
+            if self.layer_index >= len(Assignment.assignments(Assignment.current_assignment_index)):
+                Assignment.current_assignment_index+=1
+            self.start_next_assignment()
         elif node==self.correct_node:
             correct_answer()
         else:
