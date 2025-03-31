@@ -230,18 +230,13 @@ class BFSAnim(Scene,Assignment):
                         vertex_config = {"color": RED, "stroke_width": 3, "radius": 0.3},
                         root_vertex = 0,
                         )
-            
+        
         self.add(self.m_graph,Text("BFS Search Algorithm").scale(0.5).to_corner(UL))
 
         self.edge_order = list(nx.bfs_edges(nx_graph, 0, sort_neighbors=lambda n: sorted(n, reverse=True)))
         Assignment.assignments=[(0,"Select which node is next"),
-                                (1,"Select which node is next"),
-                                (2,"Select which node is next"),
-                                (3,"Select which node is next"),
-                                (4,"Select which node is next"),
-                                (5,"Select which node is next"),
-                                (6,"Select which node is next")
-                                ]
+                                ([1,2],"Select which node is next"),
+                                (3,"Select which node is next")]
             
 
         Assignment.start_next_assignment(self) 
@@ -250,16 +245,22 @@ class BFSAnim(Scene,Assignment):
         for k,edge in enumerate(self.edge_order):
             for i in edge:
                 self.pos[k+1] = self.m_graph.vertices[i].get_center().tolist()
+
         
+        #self.pos = {i: self.m_graph.vertices[i].get_center().tolist() for i in self.edge_order[1]}
         self.node_radius=0.5
         self.interactive_embed() 
        
     def highlight_node(self):
-        if(self.next_edge == -1): #If we are on the root node of the tree. I.e, first question.
+        print(self.edge_order)
+        if(self.next_edge == -1):
             self.play(self.m_graph.vertices[0].animate.set_color(GREEN), run_time = 0.5)
         else:
             edge_tup = self.edge_order[self.next_edge]
+            #from_node = self.m_graph.vertices[edge_tup[0]]
             to_node = self.m_graph.vertices[edge_tup[1]]
+            # if(from_node.get_color() != GREEN):
+            #     self.play(from_node.animate.set_color(GREEN), run_time=0.5)
             self.play(self.m_graph.edges[(edge_tup[0], edge_tup[1]) or (edge_tup[1], edge_tup[0])].animate.set_color(GREEN), run_time = 0.5)
             if(to_node.get_color() != GREEN):
                 self.play(to_node.animate.set_color(GREEN), run_time = 0.5)
@@ -268,10 +269,8 @@ class BFSAnim(Scene,Assignment):
         
     @override
     def check_answer(self,node):
-        if self.feedback_text:
-            self.remove(self.feedback_text)
-        if node==self.correct_node:
-            self.feedback_text=Text("Correct").to_edge(DOWN).scale(0.7)
+        def correct_answer():
+            self.feedback_text=Text("Correct").to_edge(DOWN)
             self.add(self.feedback_text)
             
             self.highlight_node()
@@ -281,23 +280,31 @@ class BFSAnim(Scene,Assignment):
             self.play(FadeOut(self.feedback_text), FadeOut(self.question_text), run_time=0.5 )      
             self.current_assignment_index+=1
             self.start_next_assignment()
+        if self.feedback_text:
+            self.remove(self.feedback_text)
+        if type(self.correct_node)==list:
+            correct_answer()
+        elif node==self.correct_node:
+            correct_answer()
         else:
             self.incorrect_counter+=1
             if self.incorrect_counter>=self.incorrect_max:
-                #self.feedback_text = Text("Too many incorrect attempts.").to_edge(DOWN).scale(0.7)
-                self.failed_assignment()
+                self.feedback_text = Text("Too many incorrect attempts.").to_edge(DOWN)
                 self.is_assignment=False
                 
-            else: 
-                self.feedback_text=Text(f"Incorrect ( {self.incorrect_counter}/{self.incorrect_max})").to_edge(DOWN).scale(0.7)
-                self.add(self.feedback_text)
+            else: self.feedback_text=Text(f"Incorrect ( {self.incorrect_counter}/{self.incorrect_max})").to_edge(DOWN)
+            self.add(self.feedback_text)
             
     def on_mouse_press(self, point, button, modifiers):
             
             x,y,z=point
             scene_x=x
             scene_y=y
-
+            
+            #print(x,y)
+            #if self.last_node is not None: 
+             #   scene_x,scene_y,_=self.calculate_relative_node_pos(self.last_node,self.zoom_scale)
+            
             rounded_x = round(scene_x, 1)
             rounded_y = round(scene_y, 1)
             if rounded_x==-0.0:rounded_x=0.
@@ -312,7 +319,7 @@ class BFSAnim(Scene,Assignment):
                     #self.focus_node(node)
                     
                     self.check_answer(node)
-                    
+            
             super().on_mouse_press(point, button, modifiers)
                       
             
