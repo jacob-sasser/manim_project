@@ -218,8 +218,9 @@ class scalingTests(Scene):
 
 class BFSAnim(Scene,Assignment):
     def construct(self):
-        self.layer_index=0
+        #self.layer_index=0
         #self.next_edge = -1
+        self.mouse_locked = False
         tree_depth = 2
         children = 2
         nx_graph = nx.balanced_tree(children, tree_depth)
@@ -345,6 +346,9 @@ class BFSAnim(Scene,Assignment):
                 self.add(self.feedback_text)
             
     def on_mouse_press(self, point, button, modifiers):
+            if self.mouse_locked:
+                print("Cant click!")
+                return
             
             x,y,z=point
             scene_x=x
@@ -365,8 +369,11 @@ class BFSAnim(Scene,Assignment):
                 if (abs(scene_x - node_x) <= self.node_radius) and (abs(scene_y - node_y) <= self.node_radius):
                     print(abs(scene_x-node_x))
                     print(abs(scene_y-node_y))
-                    
+                    self.mouse_locked = True
+                    print("Mouse Locked")
                     self.check_answer(node)
+                    self.mouse_locked = False
+                    print("Mouse unlocked!")
             
             super().on_mouse_press(point, button, modifiers)
                       
