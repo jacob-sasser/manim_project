@@ -219,7 +219,7 @@ class scalingTests(Scene):
 class BFSAnim(Scene,Assignment):
     def construct(self):
         self.layer_index=0
-        self.next_edge = -1
+        #self.next_edge = -1
         tree_depth = 2
         children = 2
         nx_graph = nx.balanced_tree(children, tree_depth)
@@ -227,44 +227,74 @@ class BFSAnim(Scene,Assignment):
                         list(nx_graph.edges),
                         layout = "tree",
                         layout_scale= 3.5,
+                        labels = True,
+                        label_fill_color=BLUE,
                         edge_config={"color":RED},
                         vertex_config = {"color": RED, "stroke_width": 3, "radius": 0.3},
                         root_vertex = 0,
                         )
-        
         self.add(self.m_graph,Text("BFS Search Algorithm").scale(0.5).to_corner(UL))
 
-        self.edge_order = list(nx.bfs_edges(nx_graph, 0, sort_neighbors=lambda n: sorted(n, reverse=True)))
-        Assignment.assignments=[(0,"Select which node is next"),
-                                ([1,2],"Select which node is next"),
-                                (3,"Select which node is next")]
+        self.bfs_edges = list(nx.bfs_edges(nx_graph, 0, sort_neighbors=lambda n: sorted(n, reverse=True)))
+        self.bfs_layers = dict(enumerate(nx.bfs_layers(nx_graph, 0)))
+        print(self.bfs_edges)
+        print(self.bfs_layers)
+        # Assignment.assignments=[(0,"Select which node is next"),
+        #                         (1,"Select which node is next"),
+        #                         (2,"Select which node is next")]
+        
+        #Assignment Population via NetworkX BFS Layers.
+        Assignment.assignments = []
+        for layer in self.bfs_layers.values():
+            Assignment.assignments.append((layer, "Select which node is next"))
+        print(Assignment.assignments)
             
 
         Assignment.start_next_assignment(self) 
         self.pos={}
-        self.pos[0]=self.m_graph.vertices[0].get_center().tolist()
-        for k,edge in enumerate(self.edge_order):
-            for i in edge:
-                self.pos[k+1] = self.m_graph.vertices[i].get_center().tolist()
-
+        #self.pos[0]=self.m_graph.vertices[0].get_center().tolist()
+        # for k,edge in enumerate(self.bfs_edges):
+        #     for i in edge:
+        #         self.pos[k+1] = self.m_graph.vertices[i].get_center().tolist()
         
-        #self.pos = {i: self.m_graph.vertices[i].get_center().tolist() for i in self.edge_order[1]}
+        #Changed previous version due to position numbers not lining up with actual vertice numbers.
+        for i,vertice in enumerate(self.m_graph.vertices.values()):
+            self.pos[i] = vertice.get_center().tolist()
+        
         self.node_radius=0.5
         self.interactive_embed() 
-       
-    def highlight_node(self):
-        print(self.edge_order)
-        if(self.next_edge == -1):
-            self.play(self.m_graph.vertices[0].animate.set_color(GREEN), run_time = 0.5)
-        else:
-            edge_tup = self.edge_order[self.next_edge]
-            #from_node = self.m_graph.vertices[edge_tup[0]]
-            to_node = self.m_graph.vertices[edge_tup[1]]
-            # if(from_node.get_color() != GREEN):
-            #     self.play(from_node.animate.set_color(GREEN), run_time=0.5)
-            self.play(self.m_graph.edges[(edge_tup[0], edge_tup[1]) or (edge_tup[1], edge_tup[0])].animate.set_color(GREEN), run_time = 0.5)
+        
+        
+    #Old - Used specific node order not layered approach
+    # def highlight_node(self):
+    #     print(self.edge_order)
+    #     if(self.next_edge == -1):
+    #         self.play(self.m_graph.vertices[0].animate.set_color(GREEN), run_time = 0.5)
+    #     else:
+    #         edge_tup = self.edge_order[self.next_edge]
+    #         to_node = self.m_graph.vertices[edge_tup[1]]
+    #         self.play(self.m_graph.edges[(edge_tup[0], edge_tup[1]) or (edge_tup[1], edge_tup[0])].animate.set_color(GREEN), run_time = 0.5)
+    #         if(to_node.get_color() != GREEN):
+    #             self.play(to_node.animate.set_color(GREEN), run_time = 0.5)
+    
+    def highlight_node(self, node):
+        edge_to_highlight = None
+        for edge in self.bfs_edges:
+            if edge[1] == node:
+                edge_to_highlight = edge
+                self.bfs_edges.remove(edge)
+                break
+        print(edge_to_highlight)
+        if edge_to_highlight == None:
+            self.play(self.m_graph.vertices[node].animate.set_color(GREEN), run_time = 0.5)
+        else:           
+            to_node = self.m_graph.vertices[edge_to_highlight[1]]
+            self.play(self.m_graph.edges[(edge_to_highlight[0], edge_to_highlight[1]) or (edge_to_highlight[1], edge_to_highlight[0])].animate.set_color(GREEN), run_time = 0.5)
             if(to_node.get_color() != GREEN):
                 self.play(to_node.animate.set_color(GREEN), run_time = 0.5)
+            
+            
+            
         
         
         
@@ -275,7 +305,7 @@ class BFSAnim(Scene,Assignment):
             self.add(self.feedback_text)
             
             self.highlight_node()
-            self.next_edge += 1
+            #self.next_edge += 1
             
             self.is_assignment=False
             self.play(FadeOut(self.feedback_text), FadeOut(self.question_text), run_time=0.5 )      
@@ -283,18 +313,23 @@ class BFSAnim(Scene,Assignment):
             self.start_next_assignment()
         if self.feedback_text:
             self.remove(self.feedback_text)
-        if type(self.correct_node)==list:
-            self.layer_index+=1
+        if node in self.correct_node:
+            self.correct_node.remove(node)
+            print("Correct Node", self.correct_node)
+            print("Assignments", Assignment.assignments)
+            #self.layer_index+=1
             self.feedback_text=Text("Correct").to_edge(DOWN)
             self.add(self.feedback_text)
             
-            self.highlight_node()
-            self.next_edge += 1
+            self.highlight_node(node)
+            #self.next_edge += 1
             
             self.is_assignment=False
             self.play(FadeOut(self.feedback_text), FadeOut(self.question_text), run_time=0.5 )      
-            if self.layer_index >= len(Assignment.assignments(Assignment.current_assignment_index)):
-                Assignment.current_assignment_index+=1
+            #if self.layer_index >= len(Assignment.assignments(Assignment.current_assignment_index)):
+            #    Assignment.current_assignment_index+=1
+            if len(self.correct_node) <= 0:
+                Assignment.current_assignment_index += 1
             self.start_next_assignment()
         elif node==self.correct_node:
             correct_answer()
@@ -302,10 +337,12 @@ class BFSAnim(Scene,Assignment):
             self.incorrect_counter+=1
             if self.incorrect_counter>=self.incorrect_max:
                 self.feedback_text = Text("Too many incorrect attempts.").to_edge(DOWN)
+                self.add(self.feedback_text)
+                self.failed_assignment() #Displays a failed assignment screen
                 self.is_assignment=False
-                
-            else: self.feedback_text=Text(f"Incorrect ( {self.incorrect_counter}/{self.incorrect_max})").to_edge(DOWN)
-            self.add(self.feedback_text)
+            else: 
+                self.feedback_text=Text(f"Incorrect ( {self.incorrect_counter}/{self.incorrect_max})").to_edge(DOWN)
+                self.add(self.feedback_text)
             
     def on_mouse_press(self, point, button, modifiers):
             
@@ -328,7 +365,6 @@ class BFSAnim(Scene,Assignment):
                 if (abs(scene_x - node_x) <= self.node_radius) and (abs(scene_y - node_y) <= self.node_radius):
                     print(abs(scene_x-node_x))
                     print(abs(scene_y-node_y))
-                    #self.focus_node(node)
                     
                     self.check_answer(node)
             
