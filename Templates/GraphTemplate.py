@@ -226,26 +226,35 @@ class BFSAnim(Scene,Assignment):
         tree_depth = 2
         children = 2
         num_nodes=10
-        edge_probability=0.25
+        edge_probability=0.2
         while True:
             nx_graph = nx.erdos_renyi_graph(num_nodes, edge_probability)
             if nx.is_connected(nx_graph):
                 break
+        node_map = {node: idx for idx, node in enumerate(nx_graph.nodes)}
+        nx_graph = nx.relabel_nodes(nx_graph, node_map)
+
         self.m_graph = Graph(list(nx_graph.nodes),
                         list(nx_graph.edges),
                         layout = "spring",
-                        layout_scale= 3,
+                        layout_scale= 2.5,
                         labels = True,
                         label_fill_color=WHITE,
                         edge_config={"color":BLUE,"stroke_width":2},
                         vertex_config = {"color": RED, "stroke_width": 3, "radius": 0.3},
                         
                         )
+        
         self.add(self.m_graph,Text("BFS Algorithm").scale(0.5).to_corner(DR))
-
-        self.bfs_edges = list(nx.bfs_edges(nx_graph, 0, sort_neighbors=lambda n: sorted(n, reverse=True)))
-        self.bfs_layers = dict(enumerate(nx.bfs_layers(nx_graph, 0)))
         self.all_nodes = list(nx_graph.nodes)
+        self.start_node=random.choice(self.all_nodes)
+        
+        self.bfs_edges = list(nx.bfs_edges(nx_graph, self.start_node, sort_neighbors=lambda n: sorted(n, reverse=True)))
+        self.bfs_layers = dict(enumerate(nx.bfs_layers(nx_graph, self.start_node)))
+        
+        start_vertex = self.m_graph.vertices[self.start_node]
+        self.play(start_vertex.animate.set_color(GREEN), run_time=0.1)
+
         print(self.bfs_edges)
         print(self.bfs_layers)
         # Assignment.assignments=[(0,"Select which node is next"),
@@ -274,6 +283,7 @@ class BFSAnim(Scene,Assignment):
         self.node_radius=0.5
         self.interactive_embed() 
         
+        self.option_map = {chr(i + 65): node for i, node in enumerate(self.bfs_edges)}
     '''def update_instruction(self, text):
         """Smoothly updates the instruction text."""
         new_text = Text(text, color=WHITE).scale(0.6).move_to(UP * 2.5)
@@ -365,11 +375,18 @@ class BFSAnim(Scene,Assignment):
                 self.add(Text(str(node),color=WHITE).scale(0.6).move_to(self.m_graph.vertices[node].get_center()))
                 self.feedback_text=Text(f"Incorrect ( {self.incorrect_counter}/{self.incorrect_max})").to_edge(DOWN).scale(0.5)
                 #self.add(self.feedback_text)
+
+
     def on_key_press(self, symbol, modifiers):
         key = chr(symbol).upper()
-        self.check_answer(self.option_map[key])
+        if key in self.option_map:
+            node = self.option_map[key]
+            self.check_answer(node)
         return super().on_key_press(symbol, modifiers)
+    
+
     def on_mouse_press(self, point, button, modifiers):
+            
             if self.mouse_locked:
                 print("Cant click!")
                 return
@@ -377,10 +394,6 @@ class BFSAnim(Scene,Assignment):
             x,y,z=point
             scene_x=x
             scene_y=y
-            
-            #print(x,y)
-            #if self.last_node is not None: 
-             #   scene_x,scene_y,_=self.calculate_relative_node_pos(self.last_node,self.zoom_scale)
             
             rounded_x = round(scene_x, 1)
             rounded_y = round(scene_y, 1)
@@ -393,14 +406,15 @@ class BFSAnim(Scene,Assignment):
                 if (abs(scene_x - node_x) <= self.node_radius) and (abs(scene_y - node_y) <= self.node_radius):
                     print(abs(scene_x-node_x))
                     print(abs(scene_y-node_y))
-                    self.mouse_locked = True
+                    
                     print("Mouse Locked")
                     self.check_answer(node)
                     self.mouse_locked = False
                     print("Mouse unlocked!")
             
             super().on_mouse_press(point, button, modifiers)
- 
+                      
+            
 class SPFAlgorithm(Scene):
     def construct(self):
         #Scene graph parameters.
