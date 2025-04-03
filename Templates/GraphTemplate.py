@@ -216,23 +216,30 @@ class scalingTests(Scene):
             ScaleInPlace(g_10, 2.0)
         )
 
+
 class BFSAnim(Scene,Assignment):
     def construct(self):
         #self.layer_index=0
         #self.next_edge = -1
+        
         self.mouse_locked = False
         tree_depth = 2
         children = 2
-        nx_graph = nx.balanced_tree(children, tree_depth)
+        num_nodes=10
+        edge_probability=0.3
+        while True:
+            nx_graph = nx.erdos_renyi_graph(num_nodes, edge_probability)
+            if nx.is_connected(nx_graph):
+                break
         self.m_graph = Graph(list(nx_graph.nodes),
                         list(nx_graph.edges),
-                        layout = "tree",
+                        layout = "spring",
                         layout_scale= 3.5,
                         labels = True,
                         label_fill_color=BLUE,
                         edge_config={"color":RED},
                         vertex_config = {"color": RED, "stroke_width": 3, "radius": 0.3},
-                        root_vertex = 0,
+                        
                         )
         self.add(self.m_graph,Text("BFS Search Algorithm").scale(0.5).to_corner(UL))
 
@@ -376,8 +383,7 @@ class BFSAnim(Scene,Assignment):
                     print("Mouse unlocked!")
             
             super().on_mouse_press(point, button, modifiers)
-                      
-            
+  
 class SPFAlgorithm(Scene):
     def construct(self):
         #Scene graph parameters.
