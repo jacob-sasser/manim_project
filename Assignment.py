@@ -35,7 +35,7 @@ class Assignment():
     def start_next_assignment(self):
         if(self.current_assignment_index<len(self.assignments)):
             correct_node,question=self.assignments[self.current_assignment_index]
-            self.assignment(correct_node,question)
+            self.assignment(correct_node,question,self.all_nodes)
         else:
             self.complete_all_assignments()
 
