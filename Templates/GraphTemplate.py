@@ -349,7 +349,10 @@ class BFSAnim(Scene,Assignment):
                 self.failed_assignment() #Displays a failed assignment screen
                 self.is_assignment=False
             else: 
-                self.feedback_text=Text(f"Incorrect ( {self.incorrect_counter}/{self.incorrect_max})").to_edge(DOWN)
+                self.play(self.m_graph.vertices[node].animate.set_color(WHITE),run_time=0.1)
+                self.play(self.m_graph.vertices[node].animate.set_color(RED),run_time=0.1)
+                self.add(Text(str(node),color=WHITE).scale(0.6).move_to(self.m_graph.vertices[node].get_center()))
+                self.feedback_text=Text(f"Incorrect ( {self.incorrect_counter}/{self.incorrect_max})").to_edge(DOWN).scale(0.5)
                 self.add(self.feedback_text)
             
     def on_mouse_press(self, point, button, modifiers):
