@@ -1,6 +1,7 @@
 import pyglet
 from manim import *
 from manim.opengl import *
+import random
 class Assignment():
     locations={}
     last_node=None
@@ -39,7 +40,7 @@ class Assignment():
             self.complete_all_assignments()
 
 
-    def assignment(self, correct_node, question):
+    def assignment(self, correct_node, question,all_nodes):
         self.correct_node = correct_node
         self.incorrect_counter = 0
         self.is_assignment = True
@@ -50,6 +51,7 @@ class Assignment():
             self.remove(self.feedback_text)
         self.question_text = Text(question).to_edge(UP)
         self.add(self.question_text.scale(0.4))
+        self.generate_options(all_nodes)
         
     def complete_all_assignments(self):
         self.clear()
@@ -71,3 +73,24 @@ class Assignment():
 
         
         return relative_pos
+    def generate_options(self,all_nodes):
+        
+        if self.options:
+            for txt in self.options:
+                self.remove(txt)
+        incorrect_nodes = [node for node in all_nodes if node not in self.correct_node]
+        chosen_incorrect = random.sample(incorrect_nodes, min(4 - len(self.correct_node), len(incorrect_nodes)))
+        choices=self.correct_node+chosen_incorrect
+        random.shuffle(choices)
+        option_labels=["A","B","C","D"]
+        self.option_map = {option_labels[i]: choices[i] for i in range(len(choices))}
+        
+        base_position = LEFT * 5 + UP * 1.5  
+        vertical_spacing = 0.75  
+
+        for i, label in enumerate(option_labels):
+        
+            if i < len(choices):  # Ensure we don't exceed available nodes
+                self.option_text = Text(f"{label}: Node {choices[i]}").scale(0.5).move_to(base_position-UP*(i * vertical_spacing))
+                self.options.append(self.option_text)
+                self.add(self.option_text)

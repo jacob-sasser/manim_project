@@ -217,16 +217,16 @@ class scalingTests(Scene):
         )
 
 
+
 class BFSAnim(Scene,Assignment):
     def construct(self):
         #self.layer_index=0
         #self.next_edge = -1
-        
         self.mouse_locked = False
         tree_depth = 2
         children = 2
         num_nodes=10
-        edge_probability=0.3
+        edge_probability=0.25
         while True:
             nx_graph = nx.erdos_renyi_graph(num_nodes, edge_probability)
             if nx.is_connected(nx_graph):
@@ -234,17 +234,18 @@ class BFSAnim(Scene,Assignment):
         self.m_graph = Graph(list(nx_graph.nodes),
                         list(nx_graph.edges),
                         layout = "spring",
-                        layout_scale= 3.5,
+                        layout_scale= 3,
                         labels = True,
-                        label_fill_color=BLUE,
-                        edge_config={"color":RED},
+                        label_fill_color=WHITE,
+                        edge_config={"color":BLUE,"stroke_width":2},
                         vertex_config = {"color": RED, "stroke_width": 3, "radius": 0.3},
                         
                         )
-        self.add(self.m_graph,Text("BFS Search Algorithm").scale(0.5).to_corner(UL))
+        self.add(self.m_graph,Text("BFS Algorithm").scale(0.5).to_corner(DR))
 
         self.bfs_edges = list(nx.bfs_edges(nx_graph, 0, sort_neighbors=lambda n: sorted(n, reverse=True)))
         self.bfs_layers = dict(enumerate(nx.bfs_layers(nx_graph, 0)))
+        self.all_nodes = list(nx_graph.nodes)
         print(self.bfs_edges)
         print(self.bfs_layers)
         # Assignment.assignments=[(0,"Select which node is next"),
@@ -269,9 +270,18 @@ class BFSAnim(Scene,Assignment):
         for i,vertice in enumerate(self.m_graph.vertices.values()):
             self.pos[i] = vertice.get_center().tolist()
         
+
         self.node_radius=0.5
         self.interactive_embed() 
         
+    '''def update_instruction(self, text):
+        """Smoothly updates the instruction text."""
+        new_text = Text(text, color=WHITE).scale(0.6).move_to(UP * 2.5)
+        
+        self.play(FadeOut(self.instruction_text, run_time=0.3))
+        self.instruction_text = new_text
+        self.add(self.instruction_text)
+        self.play(FadeIn(self.instruction_text, run_time=0.3))'''
         
     #Old - Used specific node order not layered approach
     # def highlight_node(self):
@@ -300,7 +310,7 @@ class BFSAnim(Scene,Assignment):
             self.play(self.m_graph.edges[(edge_to_highlight[0], edge_to_highlight[1]) or (edge_to_highlight[1], edge_to_highlight[0])].animate.set_color(GREEN), run_time = 0.5)
             if(to_node.get_color() != GREEN):
                 self.play(to_node.animate.set_color(GREEN), run_time = 0.5)
-            
+        
             
             
         
@@ -348,13 +358,17 @@ class BFSAnim(Scene,Assignment):
                 self.add(self.feedback_text)
                 self.failed_assignment() #Displays a failed assignment screen
                 self.is_assignment=False
-            else: 
+            else:
+                
                 self.play(self.m_graph.vertices[node].animate.set_color(WHITE),run_time=0.1)
                 self.play(self.m_graph.vertices[node].animate.set_color(RED),run_time=0.1)
                 self.add(Text(str(node),color=WHITE).scale(0.6).move_to(self.m_graph.vertices[node].get_center()))
                 self.feedback_text=Text(f"Incorrect ( {self.incorrect_counter}/{self.incorrect_max})").to_edge(DOWN).scale(0.5)
-                self.add(self.feedback_text)
-            
+                #self.add(self.feedback_text)
+    def on_key_press(self, symbol, modifiers):
+        key = chr(symbol).upper()
+        self.check_answer(self.option_map[key])
+        return super().on_key_press(symbol, modifiers)
     def on_mouse_press(self, point, button, modifiers):
             if self.mouse_locked:
                 print("Cant click!")
@@ -386,7 +400,7 @@ class BFSAnim(Scene,Assignment):
                     print("Mouse unlocked!")
             
             super().on_mouse_press(point, button, modifiers)
-  
+ 
 class SPFAlgorithm(Scene):
     def construct(self):
         #Scene graph parameters.
