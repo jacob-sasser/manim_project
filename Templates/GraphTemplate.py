@@ -220,8 +220,7 @@ class scalingTests(Scene):
 class BFSAnim(Scene,Assignment):
     def construct(self):
         self.input_mode = 0 #0 = Keyboard, 1 = Mouse
-        self.mouse_locked = False
-        self.keyboard_locked = False
+        self.input_lock = False
         tree_depth = 2
         children = 2
         num_nodes=10
@@ -232,19 +231,25 @@ class BFSAnim(Scene,Assignment):
                 break
         node_map = {node: idx for idx, node in enumerate(nx_graph.nodes)}
         nx_graph = nx.relabel_nodes(nx_graph, node_map)
-
         self.m_graph = Graph(list(nx_graph.nodes),
                         list(nx_graph.edges),
                         layout = "spring",
-                        layout_scale= 2.5,
+                        layout_scale= 3.8,
                         labels = True,
                         label_fill_color=WHITE,
                         edge_config={"color":BLUE,"stroke_width":2},
                         vertex_config = {"fill_opacity": 0, "stroke_color": BLUE, "stroke_width": 0.3},
-                        
                         )
+        self.question_window = Rectangle(height=8.0,width=4.0).to_edge(LEFT,buff=0.0)
+        title = Text("BFS Algorithm").scale(0.4).move_to(self.question_window, UP)
+        self.add(
+            self.question_window,
+            self.m_graph.move_to(self.question_window.get_right() + [5,0,0]),
+            title,
+            Line().put_start_and_end_on(self.question_window.get_left(),self.question_window.get_right()).move_to(title, DOWN)
+        )
         
-        self.add(self.m_graph,Text("BFS Algorithm").scale(0.5).to_corner(DR))
+        
         self.all_nodes = list(nx_graph.nodes)
         self.start_node=random.choice(self.all_nodes)
         
@@ -254,15 +259,9 @@ class BFSAnim(Scene,Assignment):
         start_vertex = self.m_graph.vertices[self.start_node]
         self.play(start_vertex.animate.set_color(GREEN), run_time=0.1)
 
-        print(self.m_graph.edges)
-        print(self.bfs_edges)
-        print(self.bfs_layers)
-
         Assignment.assignments = []
         for layer in self.bfs_layers.values():
-            Assignment.assignments.append((layer, "Select which node is next"))
-        print(Assignment.assignments)
-            
+            Assignment.assignments.append((layer, "Select which node is next"))            
 
         Assignment.start_next_assignment(self) 
         self.pos={}
@@ -282,7 +281,6 @@ class BFSAnim(Scene,Assignment):
                 edge_to_highlight = edge
                 self.bfs_edges.remove(edge)
                 break
-        print("Edge we will highlight:", edge_to_highlight)
         if edge_to_highlight == None:
             self.play(self.m_graph.vertices[node].animate.set_color(GREEN).set_fill(GREEN,opacity=1.0), run_time = 0.5)
         else:           
@@ -292,16 +290,25 @@ class BFSAnim(Scene,Assignment):
             self.play(self.m_graph.edges[(edge_to_highlight[0], edge_to_highlight[1])].animate.set_color(GREEN), run_time = 0.5)
             if(to_node.get_color() != GREEN):
                 self.play(to_node.animate.set_color(GREEN).set_fill(GREEN, opacity=1.0), run_time = 0.5)
-        
-            
-            
-        
-        
+                
+    @override
+    def assignment(self, correct_node, question,all_nodes):
+        self.correct_node = correct_node
+        self.incorrect_counter = 0
+        self.is_assignment = True
+
+        if self.question_text:
+            self.remove(self.question_text)
+        if self.feedback_text:
+            self.remove(self.feedback_text)
+        self.question_text = Text(question).scale(0.65).move_to(self.question_window.get_center() + [0,3,0])
+        self.add(self.question_text.scale(0.4))
+        self.generate_options(all_nodes)
         
     @override
     def check_answer(self,node):
         def correct_answer():
-            self.feedback_text=Text("Correct").to_edge(DOWN)
+            self.feedback_text=Text("Correct",color=GREEN).scale(0.75).move_to(self.question_window, DOWN + [0,0.8,0])
             self.add(self.feedback_text)
             self.highlight_node()
             self.is_assignment=False
@@ -312,9 +319,7 @@ class BFSAnim(Scene,Assignment):
             self.remove(self.feedback_text)
         if node in self.correct_node:
             self.correct_node.remove(node)
-            print("Correct Node", self.correct_node)
-            print("Assignments", Assignment.assignments)
-            self.feedback_text=Text("Correct").to_edge(DOWN)
+            self.feedback_text=Text("Correct",color=GREEN).scale(0.75).move_to(self.question_window, DOWN + [0,0.8,0])
             self.add(self.feedback_text)
             
             self.highlight_node(node)
@@ -329,34 +334,27 @@ class BFSAnim(Scene,Assignment):
         else:
             self.incorrect_counter+=1
             if self.incorrect_counter>=self.incorrect_max:
-                self.feedback_text = Text("Too many incorrect attempts.").to_edge(DOWN)
-                self.add(self.feedback_text)
                 self.failed_assignment() #Displays a failed assignment screen
                 self.is_assignment=False
             else:
-                
-                #self.play(self.m_graph.vertices[node].animate.set_color(WHITE),run_time=0.1)
-                #self.play(self.m_graph.vertices[node].animate.set_color(RED),run_time=0.1)
-                #self.add(Text(str(node),color=WHITE).scale(0.6).move_to(self.m_graph.vertices[node].get_center()))
-                self.feedback_text=Text(f"Incorrect ( {self.incorrect_counter}/{self.incorrect_max})").to_edge(DOWN).scale(0.5)
+                self.feedback_text=Text(f"Incorrect ( {self.incorrect_counter}/{self.incorrect_max})", color=RED).scale(0.75).move_to(self.question_window, DOWN).scale(0.5)
                 self.add(self.feedback_text)
 
 
     def on_key_press(self, symbol, modifiers):
-        if(self.keyboard_locked or self.input_mode):
+        if(self.input_lock or self.input_mode):
             print("Can't type!")
             return
         key = chr(symbol).upper()
         if key in self.option_map:
             node = self.option_map[key]
-            self.keyboard_locked = True
+            self.input_lock = True
             self.check_answer(node)
-            self.keyboard_locked = False
+            self.input_lock = False
         return super().on_key_press(symbol, modifiers)
     
-
     def on_mouse_press(self, point, button, modifiers):
-            if self.mouse_locked or not self.input_mode:
+            if self.input_lock or not self.input_mode:
                 print("Cant click!")
                 return
             x,y,z=point
@@ -375,9 +373,9 @@ class BFSAnim(Scene,Assignment):
                     print(abs(scene_x-node_x))
                     print(abs(scene_y-node_y))
                     
-                    self.mouse_locked = True
+                    self.input_lock = True
                     self.check_answer(node)
-                    self.mouse_locked = False            
+                    self.input_lock = False            
             super().on_mouse_press(point, button, modifiers)
                       
             
