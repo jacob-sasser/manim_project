@@ -238,8 +238,9 @@ class BFSAnim(Scene,Assignment):
                         labels = True,
                         label_fill_color=WHITE,
                         edge_config={"color":BLUE,"stroke_width":2},
-                        vertex_config = {"fill_opacity": 0, "stroke_color": BLUE, "stroke_width": 0.3},
+                        vertex_config = {"fill_opacity": 0, "stroke_color": BLUE, "stroke_width": 2},
                         )
+    
         self.question_window = Rectangle(height=8.0,width=4.0).to_edge(LEFT,buff=0.0)
         title = Text("BFS Algorithm").scale(0.4).move_to(self.question_window, UP)
         self.add(
@@ -334,11 +335,21 @@ class BFSAnim(Scene,Assignment):
         else:
             self.incorrect_counter+=1
             if self.incorrect_counter>=self.incorrect_max:
-                self.failed_assignment() #Displays a failed assignment screen
+                self.assignment_end(True)
                 self.is_assignment=False
             else:
                 self.feedback_text=Text(f"Incorrect ( {self.incorrect_counter}/{self.incorrect_max})", color=RED).scale(0.75).move_to(self.question_window, DOWN).scale(0.5)
                 self.add(self.feedback_text)
+                
+    @override
+    def assignment_end(self, fail: bool):
+        self.clear()
+        if(fail):
+            completion_text=Text("You failed this assignment").scale(0.75)
+        else:
+            completion_text=Text("All assignments completed").scale(0.75)
+        prompt_box = RoundedRectangle(0.5).set_fill(GREEN_C,1.0)
+        self.add(completion_text.move_to([0,1,0]), prompt_box.move_to([0,-1,0]), Text("Try again").move_to(prompt_box.get_center()).scale(0.5))
 
 
     def on_key_press(self, symbol, modifiers):
