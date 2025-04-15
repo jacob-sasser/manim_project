@@ -4,6 +4,7 @@ import time
 import networkx as nx
 from typing import override
 from networkx.algorithms import tree
+import sys
 #from jsons.handlejson import importjson
 import IPython
 import time
@@ -221,10 +222,28 @@ class BFSAnim(Scene,Assignment):
     def construct(self):
         self.input_mode = 0 #0 = Keyboard, 1 = Mouse
         self.input_lock = False
-        tree_depth = 2
-        children = 2
-        num_nodes=10
-        edge_probability=0.2
+        self.all_nodes = []
+        self.pos = {}
+        self.start_node = 0
+        self.option_map = {}
+        self.bfs_edges = []
+        self.bfs_layers = []
+        self.m_graph = None
+        self.question_window = None
+        
+        self.build_scene()
+        self.fill_assignments()
+
+        Assignment.start_next_assignment(self) 
+        
+        self.node_radius=0.5
+        self.interactive_embed() 
+                
+        
+    def build_scene(self):
+        self.clear()
+        num_nodes = 10
+        edge_probability = 0.2
         while True:
             nx_graph = nx.erdos_renyi_graph(num_nodes, edge_probability)
             if nx.is_connected(nx_graph):
@@ -232,15 +251,14 @@ class BFSAnim(Scene,Assignment):
         node_map = {node: idx for idx, node in enumerate(nx_graph.nodes)}
         nx_graph = nx.relabel_nodes(nx_graph, node_map)
         self.m_graph = Graph(list(nx_graph.nodes),
-                        list(nx_graph.edges),
-                        layout = "spring",
-                        layout_scale= 3.8,
-                        labels = True,
-                        label_fill_color=WHITE,
-                        edge_config={"color":BLUE,"stroke_width":2},
-                        vertex_config = {"fill_opacity": 0, "stroke_color": BLUE, "stroke_width": 2},
-                        )
-    
+                list(nx_graph.edges),
+                layout = "spring",
+                layout_scale= 3.8,
+                labels = True,
+                label_fill_color=WHITE,
+                edge_config={"color":BLUE,"stroke_width":2},
+                vertex_config = {"fill_opacity": 0, "stroke_color": BLUE, "stroke_width": 2},
+                )
         self.question_window = Rectangle(height=8.0,width=4.0).to_edge(LEFT,buff=0.0)
         title = Text("BFS Algorithm").scale(0.4).move_to(self.question_window, UP)
         self.add(
@@ -250,6 +268,8 @@ class BFSAnim(Scene,Assignment):
             Line().put_start_and_end_on(self.question_window.get_left(),self.question_window.get_right()).move_to(title, DOWN)
         )
         
+        for i,vertice in enumerate(self.m_graph.vertices.values()):
+            self.pos[i] = vertice.get_center().tolist()
         
         self.all_nodes = list(nx_graph.nodes)
         self.start_node=random.choice(self.all_nodes)
@@ -257,23 +277,15 @@ class BFSAnim(Scene,Assignment):
         self.bfs_edges = list(nx.bfs_edges(nx_graph, self.start_node, sort_neighbors=lambda n: sorted(n, reverse=True)))
         self.bfs_layers = dict(enumerate(nx.bfs_layers(nx_graph, self.start_node)))
         
+        self.option_map = {chr(i + 65): node for i, node in enumerate(self.bfs_edges)}
+
         start_vertex = self.m_graph.vertices[self.start_node]
         self.play(start_vertex.animate.set_color(GREEN), run_time=0.1)
-
+            
+    def fill_assignments(self):
         Assignment.assignments = []
         for layer in self.bfs_layers.values():
             Assignment.assignments.append((layer, "Select which node is next"))            
-
-        Assignment.start_next_assignment(self) 
-        self.pos={}
-        for i,vertice in enumerate(self.m_graph.vertices.values()):
-            self.pos[i] = vertice.get_center().tolist()
-        
-
-        self.node_radius=0.5
-        self.interactive_embed() 
-        
-        self.option_map = {chr(i + 65): node for i, node in enumerate(self.bfs_edges)}
         
     def highlight_node(self, node):
         edge_to_highlight = None
@@ -297,6 +309,7 @@ class BFSAnim(Scene,Assignment):
         self.correct_node = correct_node
         self.incorrect_counter = 0
         self.is_assignment = True
+        self.is_end = False
 
         if self.question_text:
             self.remove(self.question_text)
@@ -305,7 +318,7 @@ class BFSAnim(Scene,Assignment):
         self.question_text = Text(question).scale(0.65).move_to(self.question_window.get_center() + [0,3,0])
         self.add(self.question_text.scale(0.4))
         self.generate_options(all_nodes)
-        
+    
     @override
     def check_answer(self,node):
         def correct_answer():
@@ -335,6 +348,7 @@ class BFSAnim(Scene,Assignment):
         else:
             self.incorrect_counter+=1
             if self.incorrect_counter>=self.incorrect_max:
+                print(self.input_lock)
                 self.assignment_end(True)
                 self.is_assignment=False
             else:
@@ -343,20 +357,35 @@ class BFSAnim(Scene,Assignment):
                 
     @override
     def assignment_end(self, fail: bool):
-        self.clear()
-        if(fail):
-            completion_text=Text("You failed this assignment").scale(0.75)
-        else:
-            completion_text=Text("All assignments completed").scale(0.75)
-        prompt_box = RoundedRectangle(0.5).set_fill(GREEN_C,1.0)
-        self.add(completion_text.move_to([0,1,0]), prompt_box.move_to([0,-1,0]), Text("Try again").move_to(prompt_box.get_center()).scale(0.5))
-
-
+            self.input_lock = False
+            self.is_end = True
+            self.clear()
+            if(fail):
+                completion_text=Text("You failed this assignment").scale(0.75)
+            else:
+                completion_text=Text("All assignments completed").scale(0.75)
+            prompt_box = RoundedRectangle(0.5).set_fill(GREEN_C,1.0)
+            self.add(completion_text.move_to([0,1,0]), 
+                     prompt_box.move_to([0,-1,0]), 
+                     Text("Try again?(Y/N)").move_to(prompt_box.get_center()).scale(0.25)
+                     )
+            
+            
     def on_key_press(self, symbol, modifiers):
         if(self.input_lock or self.input_mode):
             print("Can't type!")
             return
         key = chr(symbol).upper()
+        if(self.is_end):
+            print("the end...")
+            if(key == 'Y'):
+                self.build_scene()
+                self.fill_assignments()
+                self.is_end = False
+                self.is_assignment = True
+                Assignment.start_next_assignment(self)
+            if(key == 'N'):
+                sys.exit()
         if key in self.option_map:
             node = self.option_map[key]
             self.input_lock = True
