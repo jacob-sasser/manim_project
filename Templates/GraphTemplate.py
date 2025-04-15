@@ -4,7 +4,6 @@ import time
 import networkx as nx
 from typing import override
 from networkx.algorithms import tree
-import sys
 #from jsons.handlejson import importjson
 import IPython
 import time
@@ -305,7 +304,7 @@ class BFSAnim(Scene,Assignment):
                 self.play(to_node.animate.set_color(GREEN).set_fill(GREEN, opacity=1.0), run_time = 0.5)
                 
     @override
-    def assignment(self, correct_node, question,all_nodes):
+    def assignment(self, correct_node, question, all_nodes):
         self.correct_node = correct_node
         self.incorrect_counter = 0
         self.is_assignment = True
@@ -377,16 +376,16 @@ class BFSAnim(Scene,Assignment):
             return
         key = chr(symbol).upper()
         if(self.is_end):
-            print("the end...")
             if(key == 'Y'):
+                self.is_end = False
                 self.build_scene()
                 self.fill_assignments()
-                self.is_end = False
                 self.is_assignment = True
+                Assignment.current_assignment_index = 1
                 Assignment.start_next_assignment(self)
             if(key == 'N'):
-                sys.exit()
-        if key in self.option_map:
+                pass
+        elif key in self.option_map:
             node = self.option_map[key]
             self.input_lock = True
             self.check_answer(node)
