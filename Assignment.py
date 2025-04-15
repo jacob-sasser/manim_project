@@ -78,23 +78,28 @@ class Assignment():
         
         return relative_pos
     def generate_options(self,all_nodes):
-        
-        if self.options:
-            for txt in self.options:
-                self.remove(txt)
-        incorrect_nodes = [node for node in all_nodes if node not in self.correct_node]
-        self.chosen_incorrect = random.sample(incorrect_nodes, min(4 - len(self.correct_node), len(incorrect_nodes)))
-        choices=self.correct_node+self.chosen_incorrect
-        random.shuffle(choices)
-        option_labels=["A","B","C","D"]
-        self.option_map = {option_labels[i]: choices[i] for i in range(len(choices))}
-        
-        base_position = LEFT * 5 + UP * 1.5  
-        vertical_spacing = 0.75  
+        possible_correct_options=self.correct_node
+        if self.isMultipleChoice:
+            if self.options:
+                for txt in self.options:
+                    self.remove(txt)
+            incorrect_nodes = [node for node in all_nodes if node not in self.correct_node]
+            assert len(incorrect_nodes)>0
+            num_incorrect_needed=max(0,4-len(self.correct_node))
+            self.chosen_incorrect = random.sample(incorrect_nodes, min(num_incorrect_needed, len(incorrect_nodes)))
+            if len(self.correct_node)>4:
+                possible_correct_options=random.sample(4,self.correct_node)
+            choices=possible_correct_options+self.chosen_incorrect
+            random.shuffle(choices)
+            option_labels=["A","B","C","D"]
+            self.option_map = {option_labels[i]: choices[i] for i in range(len(choices))}
+            
+            base_position = LEFT * 5 + UP * 1.5  
+            vertical_spacing = 0.75  
 
-        for i, label in enumerate(option_labels):
-        
-            if i < len(choices):  # Ensure we don't exceed available nodes
-                self.option_text = Text(f"{label}: Node {choices[i]}").scale(0.5).move_to(base_position-UP*(i * vertical_spacing))
-                self.options.append(self.option_text)
-                self.add(self.option_text)
+            for i, label in enumerate(option_labels):
+            
+                if i < len(choices):  # Ensure we don't exceed available nodes
+                    self.option_text = Text(f"{label}: Node {choices[i]}").scale(0.5).move_to(base_position-UP*(i * vertical_spacing))
+                    self.options.append(self.option_text)
+                    self.add(self.option_text)
