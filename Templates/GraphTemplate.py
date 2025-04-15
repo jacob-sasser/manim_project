@@ -229,6 +229,7 @@ class BFSAnim(Scene,Assignment):
         self.bfs_layers = []
         self.m_graph = None
         self.question_window = None
+        Assignment.isMultipleChoice = True
         
         self.build_scene()
         self.fill_assignments()
@@ -242,7 +243,7 @@ class BFSAnim(Scene,Assignment):
     def build_scene(self):
         self.clear()
         num_nodes = 10
-        edge_probability = 0.2
+        edge_probability = 0.4
         while True:
             nx_graph = nx.erdos_renyi_graph(num_nodes, edge_probability)
             if nx.is_connected(nx_graph):
