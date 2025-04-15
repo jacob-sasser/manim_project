@@ -89,6 +89,7 @@ class Assignment():
             self.chosen_incorrect = random.sample(incorrect_nodes, min(num_incorrect_needed, len(incorrect_nodes)))
             if len(self.correct_node)>4:
                 possible_correct_options=random.sample(4,self.correct_node)
+            
             choices=possible_correct_options+self.chosen_incorrect
             random.shuffle(choices)
             option_labels=["A","B","C","D"]
