@@ -1,6 +1,6 @@
 # Animation and Interactivity Research  
-A project worked on by Jacob Sasser and Brandon Tiseo for the bridges team at UNC Charlotte.  
-Goal of the project was to demonstrate the capabilities of Manim as an animation engine to be  
+A research project worked on by Jacob Sasser and Brandon Tiseo for the Bridges team at UNC Charlotte.  
+The goal of the project is to demonstrate the capabilities of Manim as an animation engine to be  
 utilized for Computer Science education.  
     
 ## To run:  
@@ -18,5 +18,5 @@ manim -pqm GraphTemplate.py BFSAnim --renderer=opengl
 BFSAnim Notes:  
 Set input mode to 0 for keyboard input, 1 for mouse input.  
 When running the program use keyboard to input answer choices  
-or mouse to select the node that will be traversed next.  
+or use the mouse to select the node that will be traversed next.  
 
