@@ -9,6 +9,7 @@ import IPython
 import time
 from Assignment import Assignment
 
+#Helper function used to randomly populate a graph's edges and nodes.
 def graphPopulation(n):
         nodes = [i for i in range(n)]
         edges = []
@@ -30,8 +31,10 @@ def graphPopulation(n):
         graph_data = [nodes, edges, pos, labels]
         return graph_data
 
+
+#Helper function used to randomly populate a graph's edges and nodes. 
+#Utilized by the SPFAlgorithm Class.
 def randomEdgeGen(vCount: int, edgesArr: list):
-    #Used in SPFAlgorithm
     for i in range(vCount):
         while(True): #Loop is used to ensure no duplicate edges.
             randEdge = random.randrange(vCount)
@@ -41,25 +44,30 @@ def randomEdgeGen(vCount: int, edgesArr: list):
                 break
         edgesArr.append((i, randEdge)) #Add edge tuple to array of edges.        
 
-class Graphtemp1(Scene):
+
+#Graph testing class.
+class GraphTemp1(MovingCameraScene):
     
     def construct(self):
-        n=0
+        n=0 #Node to travel the camera to.
         self.camera.background_color=BLACK
-        graph=nx.gnm_random_graph(100,20)  
-        pos=nx.spring_layout(graph)
+        graph=nx.gnm_random_graph(100,20)  #Generate a random graph from networkX.
+        pos=nx.spring_layout(graph) #Set a spring layout on the generated nodes from networkX.
         nodes={i:Dot(point=[pos[i][0]*5,pos[i][1]*5,0],color=WHITE) for i in graph.nodes()}
         edges=[Line(nodes[u].get_center(), nodes[v].get_center(), color=WHITE) for u, v in graph.edges]
 
+        #Scene Population.
         for edge in edges:
             self.add(edge)
-        for node in nodes:
-            self.add(nodes)
+        for node in nodes.values():
+            self.add(node)
         
-
+        #Move camera to node.
         if n in nodes:
-            self.play(self.camera.set_x(nodes[n].get_x()).set_y(nodes[n].get_y()))
-            
+            self.play(self.camera.frame.animate.move_to(nodes[n]))
+
+
+#Graph testing class.
 class GraphTemp2(MovingCameraScene):
     def construct(self):
         start = time.time()
@@ -108,6 +116,7 @@ class GraphTemp2(MovingCameraScene):
         end = time.time()
         print(f"Time taken: {(end-start)*10**3:.03f}ms")        
         
+#Class Used to calculate how long graphs of different sizes take to generate within Manim.
 class variousSizedGraphs1(Scene):
     def construct(self):
         start = time.time()
@@ -177,9 +186,11 @@ class variousSizedGraphs1(Scene):
         
         end = time.time()
         print(f"200 nodes time taken: {(end-start)*10**3:.03f}ms")  
-
+        
+        
+#Class Used to calculate how long graphs of different sizes take to generate within Manim.
+#Implements variousSizedGraphs1 but with a while loop.
 class variousSizedGraphs2(Scene):
-    #Previous variousSizedGraphs scene class but using a while loop.
     def construct(self):
         i = 25
         while i <= 200:
@@ -200,7 +211,8 @@ class variousSizedGraphs2(Scene):
             end = time.time()
             print(f"{i} nodes time taken: {(end-start)*10**3:.03f}ms")  
             i = i * 2
-            
+
+#Class used to test the scaling function within Manim.  
 class scalingTests(Scene):
     def construct(self):
         graph_data = graphPopulation(10)
@@ -216,11 +228,15 @@ class scalingTests(Scene):
         )
 
 
-
+'''
+Class used to implement a Breadth First Search Animation. 
+Includes full animation and interactivity implementation.
+Interactivity is derived from the Assignment.py file.
+'''
 class BFSAnim(Scene,Assignment):
     def construct(self):
         self.input_mode = 0 #0 = Keyboard, 1 = Mouse
-        self.input_lock = False
+        self.input_lock = False #Locks user input.
         self.all_nodes = []
         self.pos = {}
         self.start_node = 0
@@ -239,17 +255,21 @@ class BFSAnim(Scene,Assignment):
         self.node_radius=0.5
         self.interactive_embed() 
                 
-        
+    
+    #Helper function used to setup the scene at the beginning of each assignment and before any reattempt.
     def build_scene(self):
         self.clear()
         num_nodes = 10
         edge_probability = 0.4
+        #Randomly generate networkx graphs until desired graph is found.
         while True:
             nx_graph = nx.erdos_renyi_graph(num_nodes, edge_probability)
             if nx.is_connected(nx_graph):
                 break
-        node_map = {node: idx for idx, node in enumerate(nx_graph.nodes)}
+        node_map = {node: idx for idx, node in enumerate(nx_graph.nodes)} 
         nx_graph = nx.relabel_nodes(nx_graph, node_map)
+        
+        #Manim graph setup.
         self.m_graph = Graph(list(nx_graph.nodes),
                 list(nx_graph.edges),
                 layout = "spring",
@@ -259,8 +279,10 @@ class BFSAnim(Scene,Assignment):
                 edge_config={"color":BLUE,"stroke_width":2},
                 vertex_config = {"fill_opacity": 0, "stroke_color": BLUE, "stroke_width": 2},
                 )
-        self.question_window = Rectangle(height=8.0,width=4.0).to_edge(LEFT,buff=0.0)
+        self.question_window = Rectangle(height=8.0,width=4.0).to_edge(LEFT,buff=0.0) #Left hand side question box.
         title = Text("BFS Algorithm").scale(0.4).move_to(self.question_window, UP)
+        
+        #Add all mobjects to the scene.
         self.add(
             self.question_window,
             self.m_graph.move_to(self.question_window.get_right() + [5,0,0]),
@@ -268,25 +290,31 @@ class BFSAnim(Scene,Assignment):
             Line().put_start_and_end_on(self.question_window.get_left(),self.question_window.get_right()).move_to(title, DOWN)
         )
         
+        #populate the pos dict with the positions of each node.
         for i,vertice in enumerate(self.m_graph.vertices.values()):
             self.pos[i] = vertice.get_center().tolist()
         
-        self.all_nodes = list(nx_graph.nodes)
-        self.start_node=random.choice(self.all_nodes)
+        self.all_nodes = list(nx_graph.nodes) #Populate a list of all nodes created from the initial networkx graph.
+        self.start_node=random.choice(self.all_nodes) #Randomly choose a starting node.
         
-        self.bfs_edges = list(nx.bfs_edges(nx_graph, self.start_node, sort_neighbors=lambda n: sorted(n, reverse=True)))
+        #Use networkX to collect a list/dict of the edges/layers needed to be traversed in a BFS search.
+        self.bfs_edges = list(nx.bfs_edges(nx_graph, self.start_node, sort_neighbors=lambda n: sorted(n, reverse=True))) 
         self.bfs_layers = dict(enumerate(nx.bfs_layers(nx_graph, self.start_node)))
         
         self.option_map = {chr(i + 65): node for i, node in enumerate(self.bfs_edges)}
 
+        #Set the starting node to green.
         start_vertex = self.m_graph.vertices[self.start_node]
         self.play(start_vertex.animate.set_color(GREEN), run_time=0.1)
-            
+    
+    #Populates a list of questions to be presented during the animations.    
     def fill_assignments(self):
         Assignment.assignments = []
         for layer in self.bfs_layers.values():
-            Assignment.assignments.append((layer, "Select which node is next"))            
-        
+            #Each question is a tuple containing a list of correct answers and the question.            
+            Assignment.assignments.append((layer, "Select which node is next")) 
+    
+    #Helper function used to highlight the selected node if correct. 
     def highlight_node(self, node):
         edge_to_highlight = None
         for edge in self.bfs_edges:
@@ -317,7 +345,8 @@ class BFSAnim(Scene,Assignment):
             self.remove(self.feedback_text)
         self.question_text = Text(question).scale(0.65).move_to(self.question_window.get_center() + [0,3,0])
         self.add(self.question_text.scale(0.4))
-        self.generate_options(all_nodes)
+        if self.input_mode == 0:
+            self.generate_options(all_nodes)
     
     @override
     def check_answer(self,node):
@@ -354,7 +383,8 @@ class BFSAnim(Scene,Assignment):
             else:
                 self.feedback_text=Text(f"Incorrect ( {self.incorrect_counter}/{self.incorrect_max})", color=RED).scale(0.75).move_to(self.question_window, DOWN).scale(0.5)
                 self.add(self.feedback_text)
-                
+    
+    #Helper function used to clear the scene and prompt the user with an ending screen.  
     @override
     def assignment_end(self, fail: bool):
             self.input_lock = False
@@ -418,7 +448,7 @@ class BFSAnim(Scene,Assignment):
                     self.input_lock = False            
             super().on_mouse_press(point, button, modifiers)
                       
-            
+#Class used to implement Prim's Shortest Path First Algorithm. No Interactivity.   
 class SPFAlgorithm(Scene):
     def construct(self):
         #Scene graph parameters.
