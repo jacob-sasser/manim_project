@@ -78,7 +78,7 @@ class Assignment():
         
         return relative_pos
     def generate_options(self,all_nodes):
-        possible_correct_options=self.correct_node
+        possible_correct_options=list(self.correct_node)
         if self.isMultipleChoice:
             if self.options:
                 for txt in self.options:
@@ -88,7 +88,7 @@ class Assignment():
             num_incorrect_needed=max(0,4-len(self.correct_node))
             self.chosen_incorrect = random.sample(incorrect_nodes, min(num_incorrect_needed, len(incorrect_nodes)))
             if len(self.correct_node)>4:
-                possible_correct_options=random.sample(4,self.correct_node)
+                possible_correct_options=random.sample(self.correct_node, 4)
             
             choices=possible_correct_options+self.chosen_incorrect
             random.shuffle(choices)
